@@ -1,33 +1,27 @@
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Icons from 'react-native-vector-icons/Feather';
+import { SafeAreaView, TextInput, View } from 'react-native';
 
+import { ThemeButton } from '../../components/Button/Button';
+import { useAuth } from '../../context/AuthContext';
 import styles from './styles';
 
-type RootStackParamList = {
-    Feed: undefined;
-    App: undefined;
-};
 
-const Login: React.FC = ({ navigation }: any) => {
-
+const LoginScreen: React.FC = ({ navigation }: any) => {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
+    const { login } = useAuth();
 
-function handleNavigateBack() {
-    navigation.goBack();
-}
+    async function signIn() {
+        const success = await login(email, password);
+        if (success) {
+            navigation.navigate('Home');
+            return;
+        }
+    }
 
-return (
-    <SafeAreaView style={styles.window}>
+    return (
+        <SafeAreaView style={styles.window}>
             <View style={styles.container}>
-                <View style={styles.top}>
-                    <TouchableOpacity onPress={handleNavigateBack}>
-                        <Icons name="chevron-left" size={60} color="#000" />
-                    </TouchableOpacity>
-                    <Text style={styles.title}>Login</Text>
-                </View>
-
                 <View style={styles.medium}>
                     <View style={styles.TextPadding}>
                         <TextInput
@@ -35,6 +29,9 @@ return (
                             placeholder="Email..."
                             onChangeText={setEmail}
                             value={email}
+                            textContentType='emailAddress'
+                            keyboardType="email-address"
+                            autoCapitalize="none"
                         />
                     </View>
                     <View style={styles.TextPadding}>
@@ -42,25 +39,24 @@ return (
                             style={styles.TextInput}
                             placeholder="Senha..."
                             secureTextEntry={true}
+                            textContentType='password'
                             onChangeText={setPassword}
                             value={password}
                         />
                     </View>
                     <View style={styles.TextPadding}>
-                        <TouchableOpacity
-                            style={styles.ButtomBlack}
-                            onPress={() => navigation.navigate('Home')}
-                        >
-                            <Text style={styles.ButtomTitleBlack}>Logar</Text>
-                        </TouchableOpacity>
+                        <ThemeButton
+                        title="Entrar"
+                        type="black"
+                        onPress={signIn}
+                        />
                     </View>
                     <View style={styles.AreaSubTitle}>
-                        <TouchableOpacity
-                            style={styles.SubTitle}
+                        <ThemeButton
+                            title="Não possui conta? Cadastre-se"
+                            type="white"
                             onPress={() => navigation.navigate('Register')}
-                        >
-                            <Text style={styles.TextSubTitle}>Não possui conta? Cadastre-se</Text>
-                        </TouchableOpacity>
+                        />
                     </View>
                 </View>
             </View>
@@ -68,4 +64,4 @@ return (
     );
 };
 
-export default Login;
+export default LoginScreen;

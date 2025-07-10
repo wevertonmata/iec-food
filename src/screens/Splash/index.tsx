@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { Image, Text, View } from 'react-native';
-import { styles } from './styles';
+import styles from './styles';
 
-export default function SplashScreen({ navigation }: any) {
+const SplashScreen = ({ navigation }: any) => {
   useEffect(() => {
     setTimeout(() => {
       navigation.replace('Home');
@@ -11,8 +11,10 @@ export default function SplashScreen({ navigation }: any) {
 
   return (
     <View style={styles.container}>
-      <Image source={require('../../../assets/images/logo-food.png')} style={styles.logo} />
+      <Image source={require('../../assets/images/logo-food.png')} style={styles.logo} />
       <Text style={styles.title}>Bem-vindo ao IEC Food</Text>
     </View>
   );
 }
+
+export default  SplashScreen;
