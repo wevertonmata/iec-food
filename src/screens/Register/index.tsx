@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { SafeAreaView, Text, TextInput, View } from 'react-native';
+import { Alert, SafeAreaView, Text, TextInput, View } from 'react-native';
 import { RadioButton } from 'react-native-paper';
-import { ThemeButton } from '../../components/Button/Button';
+import { ThemeButton } from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import styles from './styles';
 
 
-const RegisterScreen: React.FC = ({ navigation }: any) => {
+const RegisterScreen = ({ navigation }: any) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [number, setNumber] = useState('');
@@ -15,15 +15,37 @@ const RegisterScreen: React.FC = ({ navigation }: any) => {
     const [checked, setChecked] = useState<'cliente' | 'admin'>('cliente');
 
     const { register } = useAuth();
-
     async function handleCreateUser() {
-        if (!name || !email || !password || !passwordConfirm) return;
-        if (password !== passwordConfirm) return;
+        const missingFields = [];
+        if (!name) missingFields.push('Nome');
+        if (!email) missingFields.push('Email');
+        if (!number) missingFields.push('Telefone');
+        if (!password) missingFields.push('Senha');
+        if (!passwordConfirm) missingFields.push('Confirmação Senha');
+
+        if (missingFields.length > 0) {
+            Alert.alert(
+                'Campos obrigatórios',
+                `Preencha os seguintes campos: ${missingFields.join(', ')}`
+            );
+            return;
+        }
+
+        if (email.length < 5 || !email.includes('@') || !email.includes('.')) {
+            Alert.alert('Email inválido', 'Digite um email válido.');
+            return;
+        }
+
+        if (password !== passwordConfirm) {
+            Alert.alert('Erro', 'As senhas não coincidem.');
+            return;
+        }
+
         const tipo: 'cliente' | 'admin' = checked === 'cliente' ? 'cliente' : 'admin';
-        const newUser = { nome: name, email, senha: password, tipo };
+        const newUser = { nome: name, email, telefone: number, senha: password, tipo };
         const success = await register(newUser);
         if (success) {
-            navigation.navigate('Login');
+            navigation.replace('Login');
         }
     }
 
@@ -41,32 +63,54 @@ const RegisterScreen: React.FC = ({ navigation }: any) => {
                         style={styles.TextInput}
                         placeholder="Email..."
                         textContentType='emailAddress'
-                        onChangeText={setEmail}
+                        onChangeText={text => setEmail(text.toLowerCase())}
                         value={email}
-                    />
-                    <TextInput
-                        style={styles.TextInput}
-                        placeholder="988588787"
-                        textContentType='telephoneNumber'
-                        onChangeText={setNumber}
-                        value={number}
-                    />
-                    <TextInput
-                        style={styles.TextInput}
-                        placeholder="Senha..."
-                        textContentType='password'
-                        secureTextEntry={true}
-                        onChangeText={setPassword}
-                        value={password}
-                    />
-                    <TextInput
-                        style={styles.TextInput}
-                        placeholder="Confirmação Senha..."
-                        secureTextEntry={true}
-                        textContentType='password'
-                        onChangeText={setPasswordConfirm}
-                        value={passwordConfirm}
-                    />
+                        autoComplete='email'
+                        onBlur={() => {
+                            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                            if (email && !emailRegex.test(email)) {
+                                Alert.alert('Email inválido', 'Digite um email válido.');
+                            }}}
+                        />
+                        <TextInput
+                            style={styles.TextInput}
+                            placeholder="(99) 99999-9999"
+                            textContentType='telephoneNumber'
+                            onChangeText={text => {
+                                const cleaned = text.replace(/\D/g, '');
+                                let masked = cleaned;
+                                if (masked.length > 2) {
+                                    masked = `(${masked.slice(0, 2)}) ${masked.slice(2)}`;
+                                }
+                                if (masked.length > 9) {
+                                    masked = `${masked.slice(0, 10)}-${masked.slice(10, 14)}`;
+                                }
+                                setNumber(masked);
+                            }}
+                            value={number}
+                            keyboardType="numeric"
+                            maxLength={15}
+                        />
+                        <TextInput
+                            style={styles.TextInput}
+                            placeholder="Senha..."
+                            textContentType='password'
+                            secureTextEntry={true}
+                            onChangeText={setPassword}
+                            value={password}
+                            autoFocus={true}
+                            autoComplete='password'
+                        />
+                        <TextInput
+                            style={styles.TextInput}
+                            placeholder="Confirmação Senha..."
+                            secureTextEntry={true}
+                            textContentType='password'
+                            onChangeText={setPasswordConfirm}
+                            value={passwordConfirm}
+                            autoFocus={true}
+                            autoComplete='password'
+                        />
                     <View style={styles.radio}>
                         <RadioButton
                             value="cliente"

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { SafeAreaView, TextInput, View } from 'react-native';
+import { Alert, SafeAreaView, TextInput, View } from 'react-native';
 
-import { ThemeButton } from '../../components/Button/Button';
+import { ThemeButton } from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import styles from './styles';
 
@@ -12,10 +12,21 @@ const LoginScreen: React.FC = ({ navigation }: any) => {
     const { login } = useAuth();
 
     async function signIn() {
+        if (!email || !password) {
+            alert('Por favor, preencha todos os campos.');
+            return;
+        }
+
+        if (email.length < 5 || !email.includes('@') || !email.includes('.')) {
+            Alert.alert('Email inválido', 'Digite um email válido.');
+            return;
+        }
+
         const success = await login(email, password);
         if (success) {
             navigation.navigate('Home');
-            return;
+        } else {
+            alert('Senha ou usuário inválido.');
         }
     }
 
@@ -27,11 +38,17 @@ const LoginScreen: React.FC = ({ navigation }: any) => {
                         <TextInput
                             style={styles.TextInput}
                             placeholder="Email..."
-                            onChangeText={setEmail}
+                            onChangeText={text => setEmail(text.toLowerCase())}
                             value={email}
                             textContentType='emailAddress'
                             keyboardType="email-address"
-                            autoCapitalize="none"
+                            autoComplete='email'
+                            onBlur={() => {
+                                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                                if (email && !emailRegex.test(email)) {
+                                    Alert.alert('Email inválido', 'Digite um email válido.');
+                                }
+                            }}
                         />
                     </View>
                     <View style={styles.TextPadding}>
@@ -42,6 +59,8 @@ const LoginScreen: React.FC = ({ navigation }: any) => {
                             textContentType='password'
                             onChangeText={setPassword}
                             value={password}
+                            autoFocus={true}
+                            autoComplete='password'
                         />
                     </View>
                     <View style={styles.TextPadding}>
